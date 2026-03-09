@@ -54,7 +54,7 @@
               Buscar
             </button>
           </div>
-          <!-- Para el dropdown menu -->
+          <!-- ///////////////////      Para el dropdown menu --> 
           <div class="mt-4 flex justify-center md:justify-end">
             <select 
               id="regionFilter" 
@@ -62,11 +62,26 @@
             >
               <option value="">All Regions</option>
               <option value="Africa">África</option>
-              <option value="Americas">América</option>
+              <option value="Americas">America</option>
               <option value="Asia">Asia</option>
               <option value="Europe">Europa</option>
-              <option value="Oceania">Oceanía</option>
+              <option value="Oceania">Oceania</option>
             </select>
+          </div>
+
+          <!-- ///////////////////      Para el boton de favoritos --> 
+          <div class="mt-6 flex flex-wrap items-center justify-between gap-4">
+            <label class="flex items-center gap-2 cursor-pointer text-slate-300 hover:text-white transition-colors">
+              <input type="checkbox" id="favoritesToggle" class="w-5 h-5 accent-red-500 rounded">
+              <span>Favoritos</span>
+            </label>
+
+            <button 
+              id="clearFavoritesBtn" 
+              class="px-4 py-2 text-sm font-medium text-red-400 border border-red-500/30 rounded-lg hover:bg-red-500 hover:text-white transition-all"
+            >
+              Limpiar favoritos
+            </button>
           </div>
         </div>
       </header>

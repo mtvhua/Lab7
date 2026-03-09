@@ -15,6 +15,7 @@
 import type { Country } from '../types/country';
 import { formatNumber, formatCapitals } from '../utils/format';
 import { createElement } from '../utils/dom';
+import { getFavorites, toggleFavorite } from '../utils/storage'; // para los favoritos
 
 /**
  * Crea una tarjeta de país para mostrar en la lista.
@@ -44,6 +45,7 @@ export function createCountryCard(
 ): HTMLElement {
   // Creamos el contenedor principal usando nuestra utilidad
   const card = createElement('article', 'country-card', 'cursor-pointer');
+  const isFav = getFavorites().includes(country.cca3); // para los favoritos
 
   // Agregamos atributos de accesibilidad
   card.setAttribute('role', 'button');
@@ -57,62 +59,53 @@ export function createCountryCard(
   // innerHTML es seguro aquí porque controlamos todos los datos.
   // =========================================================================
   card.innerHTML = `
-    <div class="relative">
-      <!-- Bandera del país -->
+    <div class="relative overflow-hidden">
       <img
         src="${country.flags.svg}"
         alt="${country.flags.alt ?? `Bandera de ${country.name.common}`}"
-        class="w-full h-48 object-cover"
+        class="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105"
         loading="lazy"
       />
-      <!-- Badge de región -->
+      
       <span class="absolute top-3 right-3 px-3 py-1 bg-slate-900/80 text-slate-200 text-xs font-medium rounded-full backdrop-blur-sm">
         ${country.region}
       </span>
     </div>
 
-    <div class="p-5">
-      <!-- Nombre del país -->
-      <h2 class="text-xl font-bold text-white mb-2 truncate">
-        ${country.name.common}
-      </h2>
-
-      <!-- Nombre oficial (si es diferente) -->
-      ${
-        country.name.official !== country.name.common
-          ? `<p class="text-slate-400 text-sm mb-3 truncate" title="${country.name.official}">
-          ${country.name.official}
-        </p>`
-          : ''
-      }
-
-      <!-- Informacion basica -->
+    <div class="p-5 relative"> <h2 class="text-xl font-bold text-white mb-2 truncate">${country.name.common}</h2>
+      
       <div class="space-y-2 text-sm">
-        <div class="flex items-center gap-2 text-slate-300">
-          <span class="text-slate-500">Capital:</span>
-          <span class="truncate">${formatCapitals(country.capital)}</span>
         </div>
 
-        <div class="flex items-center gap-2 text-slate-300">
-          <span class="text-slate-500">Poblacion:</span>
-          <span>${formatNumber(country.population)}</span>
-        </div>
+      <button 
+        data-fav-code="${country.cca3}"
+        class="fav-btn absolute bottom-5 right-5 p-3 rounded-full shadow-lg transition-all duration-300 z-10
+        ${isFav ? 'bg-red-500 text-white' : 'bg-slate-700 text-slate-300 hover:bg-slate-600'}"
+      >
+        <svg class="w-6 h-6" fill="${isFav ? 'currentColor' : 'none'}" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+        </svg>
+      </button>
 
-        <div class="flex items-center gap-2 text-slate-300">
-          <span class="text-slate-500">Subregion:</span>
-          <span class="truncate">${country.subregion ?? country.region}</span>
-        </div>
-      </div>
-
-      <!-- Indicador de más información -->
       <div class="mt-4 flex items-center gap-2 text-blue-400 text-sm font-medium">
         <span>Ver más detalles</span>
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-        </svg>
       </div>
     </div>
   `;
+
+  // evento para los favoritos
+  const favBtn = card.querySelector('.fav-btn') as HTMLButtonElement;
+  favBtn.addEventListener('click', (e) => {
+    e.stopPropagation(); // para que no se abra el modal a la hora de darle al boton
+    
+    toggleFavorite(country.cca3);
+    
+    // para que se vea el "like"
+    const currentlyFav = getFavorites().includes(country.cca3);
+    favBtn.classList.toggle('bg-red-500', currentlyFav);
+    favBtn.classList.toggle('text-white', currentlyFav);
+    favBtn.querySelector('svg')?.setAttribute('fill', currentlyFav ? 'currentColor' : 'none');
+  });
 
   // =========================================================================
   // EVENT LISTENERS

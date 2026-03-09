@@ -35,6 +35,7 @@ import { searchCountries, ApiError, getCountriesByRegion } from './services/coun
 import { renderCountryList } from './components/CountryCard';
 import { openModal } from './components/CountryModal';
 import { getRequiredElement, showElement, hideElement, onDOMReady, debounce } from './utils/dom';
+import { getFavorites, clearAllFavorites } from './utils/storage';
 
 // =============================================================================
 // ESTADO DE LA APLICACIÓN
@@ -66,6 +67,8 @@ let emptyState: HTMLElement;
 let noResultsState: HTMLElement;
 let countriesList: HTMLElement;
 let regionFiltro: HTMLSelectElement; // para la el filtro de las regiones
+let favoritesToggle: HTMLInputElement;
+let clearFavoritesBtn: HTMLButtonElement; // para manejar los favoritos
 
 /**
  * Inicializa las referencias a los elementos del DOM.
@@ -82,6 +85,8 @@ function initializeElements(): void {
   noResultsState = getRequiredElement<HTMLElement>('#noResultsState');
   countriesList = getRequiredElement<HTMLElement>('#countriesList');
   regionFiltro = getRequiredElement<HTMLSelectElement>('#regionFilter'); // filtro
+  favoritesToggle = getRequiredElement<HTMLInputElement>('#favoritesToggle');
+  clearFavoritesBtn = getRequiredElement<HTMLButtonElement>('#clearFavoritesBtn');
 }
 
 // =============================================================================
@@ -135,12 +140,17 @@ function render(state: UiState): void {
       break;
 
     case 'success':
-      // Búsqueda exitosa con resultados
-      if (state.data.length === 0) {
+      // cuando hay favs
+      let countriesToDisplay = state.data;
+      if (favoritesToggle.checked) {
+        const favIds = getFavorites();
+        countriesToDisplay = state.data.filter(c => favIds.includes(c.cca3));
+      }
+      if (countriesToDisplay.length === 0) {
         showElement(noResultsState);
       } else {
         showElement(countriesList);
-        renderCountryList(state.data, countriesList, handleCountryClick);
+        renderCountryList(countriesToDisplay, countriesList, handleCountryClick);
       }
       break;
 
@@ -315,6 +325,18 @@ function setupEventListeners(): void {
 
   // Botón de reintentar
   retryButton.addEventListener('click', handleRetry);
+
+  favoritesToggle.addEventListener('change', () => { // para los favoritos
+    render(currentState); 
+  });
+
+  // limpiar favoritos
+  clearFavoritesBtn.addEventListener('click', () => {
+    if (confirm('¿Estás seguro de que quieres borrar todos tus favoritos?')) {
+      clearAllFavorites();
+      render(currentState); 
+    }
+  });
 }
 
 /**
